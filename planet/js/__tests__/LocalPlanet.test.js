@@ -187,6 +187,23 @@ describe("LocalPlanet", () => {
 
             expect(currentImg.src).toContain("original-card-image.png");
         });
+
+        it("should not overwrite an existing persisted thumbnail with transient currentProjectImage", () => {
+            mockPlanet.ProjectStorage.data.Projects.testProj1.ProjectImage =
+                "persisted-thumbnail.png";
+            localPlanet.ProjectTable = mockPlanet.ProjectStorage.data.Projects;
+            localPlanet.refreshProjectArray();
+            localPlanet.initCards();
+
+            const currentImg = document.getElementById("local-project-image-testProj1");
+            currentImg.src = "persisted-thumbnail.png";
+
+            localPlanet.setCurrentProjectImage("transient-preview.png");
+            localPlanet.renderAllProjects();
+
+            // Must preserve the persisted thumbnail and reject transient preview overwrite
+            expect(currentImg.src).toBe("http://localhost/persisted-thumbnail.png");
+        });
     });
 
     describe("updateProjects", () => {
@@ -249,6 +266,16 @@ describe("LocalPlanet", () => {
 
             expect(mockPlanet.ProjectStorage.setCurrentProjectID).toHaveBeenCalledWith("testProj1");
             expect(mockPlanet.loadProjectFromData).toHaveBeenCalledWith("data1");
+        });
+
+        it("should clear currentProjectImage when opening a project", () => {
+            localPlanet.ProjectTable = mockPlanet.ProjectStorage.data.Projects;
+            localPlanet.currentProjectImage = "stale-preview.png";
+
+            localPlanet.openProject("testProj2");
+
+            expect(localPlanet.currentProjectImage).toBeNull();
+            expect(mockPlanet.ProjectStorage.setCurrentProjectID).toHaveBeenCalledWith("testProj2");
         });
     });
 

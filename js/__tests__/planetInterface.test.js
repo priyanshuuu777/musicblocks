@@ -1746,4 +1746,123 @@ describe("PlanetInterface", () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
         consoleErrorSpy.mockRestore();
     });
+
+    describe("_isCanvasBlank", () => {
+        test("returns true for null, undefined, or 0-dimension canvas", () => {
+            expect(planetInterface._isCanvasBlank(null)).toBe(true);
+            expect(planetInterface._isCanvasBlank(undefined)).toBe(true);
+            expect(planetInterface._isCanvasBlank({ width: 0, height: 0 })).toBe(true);
+            expect(planetInterface._isCanvasBlank({ width: 10, height: 0 })).toBe(true);
+            expect(planetInterface._isCanvasBlank({ width: 0, height: 10 })).toBe(true);
+        });
+
+        test("returns true for completely transparent canvas buffer", () => {
+            const buffer = new ArrayBuffer(4 * 4 * 4); // 4x4 RGBA
+            const mockCanvas = {
+                width: 4,
+                height: 4,
+                getContext: () => ({
+                    getImageData: () => ({
+                        data: new Uint8ClampedArray(buffer)
+                    })
+                })
+            };
+            expect(planetInterface._isCanvasBlank(mockCanvas)).toBe(true);
+        });
+
+        test("returns false when canvas buffer contains drawn pixels", () => {
+            const buffer = new ArrayBuffer(4 * 4 * 4); // 4x4 RGBA
+            const u8 = new Uint8ClampedArray(buffer);
+            u8[0] = 255; // Red pixel
+            const mockCanvas = {
+                width: 4,
+                height: 4,
+                getContext: () => ({
+                    getImageData: () => ({
+                        data: u8
+                    })
+                })
+            };
+            expect(planetInterface._isCanvasBlank(mockCanvas)).toBe(false);
+        });
+
+        test("returns true if getContext throws or returns null", () => {
+            const throwingCanvas = {
+                width: 4,
+                height: 4,
+                getContext: () => {
+                    throw new Error("Context error");
+                }
+            };
+            expect(planetInterface._isCanvasBlank(throwingCanvas)).toBe(true);
+            const nullCtxCanvas = {
+                width: 4,
+                height: 4,
+                getContext: () => null
+            };
+            expect(planetInterface._isCanvasBlank(nullCtxCanvas)).toBe(true);
+        });
+    });
+
+    describe("showPlanet preview integration", () => {
+        test("passes preview image to planet.open if overlayCanvas has artwork", () => {
+            const mockPlanet = { open: jest.fn() };
+            planetInterface.planet = mockPlanet;
+            planetInterface.iframe = {
+                style: { display: "none", zIndex: "0" },
+                contentWindow: {
+                    document: {
+                        getElementById: () => ({ click: jest.fn() })
+                    }
+                }
+            };
+
+            const buffer = new ArrayBuffer(4 * 4 * 4);
+            const u8 = new Uint8ClampedArray(buffer);
+            u8[3] = 255; // Alpha > 0
+            const canvasWithArt = {
+                width: 4,
+                height: 4,
+                getContext: () => ({
+                    getImageData: () => ({ data: u8 })
+                }),
+                toDataURL: () => "data:image/png;base64,artworkPreview"
+            };
+
+            global.docById = jest.fn(id => (id === "overlayCanvas" ? canvasWithArt : null));
+
+            planetInterface.showPlanet();
+
+            expect(mockPlanet.open).toHaveBeenCalledWith("data:image/png;base64,artworkPreview");
+        });
+
+        test("passes null to planet.open if overlayCanvas is blank or transparent", () => {
+            const mockPlanet = { open: jest.fn() };
+            planetInterface.planet = mockPlanet;
+            planetInterface.iframe = {
+                style: { display: "none", zIndex: "0" },
+                contentWindow: {
+                    document: {
+                        getElementById: () => ({ click: jest.fn() })
+                    }
+                }
+            };
+
+            const buffer = new ArrayBuffer(4 * 4 * 4); // all 0
+            const blankCanvas = {
+                width: 4,
+                height: 4,
+                getContext: () => ({
+                    getImageData: () => ({ data: new Uint8ClampedArray(buffer) })
+                }),
+                toDataURL: () => "data:image/png;base64,transparent"
+            };
+
+            global.docById = jest.fn(id => (id === "overlayCanvas" ? blankCanvas : null));
+
+            planetInterface.showPlanet();
+
+            expect(mockPlanet.open).toHaveBeenCalledWith(null);
+        });
+    });
 });

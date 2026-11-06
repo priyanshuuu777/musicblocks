@@ -94,9 +94,8 @@ class LocalCard {
 
         let image = Planet.ProjectStorage.ImageDataURL;
         if (
-            this.ProjectData.ProjectImage !== null &&
-            this.ProjectData.ProjectImage !== undefined &&
-            this.ProjectData.ProjectImage !== ""
+            typeof this.ProjectData.ProjectImage === "string" &&
+            this.ProjectData.ProjectImage.trim().length > 0
         ) {
             image = this.ProjectData.ProjectImage;
         }
@@ -137,9 +136,8 @@ class LocalCard {
         let imageSrc;
 
         if (
-            this.ProjectData.ProjectImage !== null &&
-            this.ProjectData.ProjectImage !== undefined &&
-            this.ProjectData.ProjectImage !== ""
+            typeof this.ProjectData.ProjectImage === "string" &&
+            this.ProjectData.ProjectImage.trim().length > 0
         ) {
             imageSrc = this.ProjectData.ProjectImage;
         } else {

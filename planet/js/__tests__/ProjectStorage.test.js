@@ -868,7 +868,7 @@ describe("ProjectStorage", () => {
 
         // Test 2 — Missing SVG
         it("Test 2 — Missing SVG: saveLocally with missing image data preserves existing thumbnail instead of erasing it", async () => {
-            jest.spyOn(storage, "save").mockResolvedValue();
+            const saveSpy = jest.spyOn(storage, "save").mockResolvedValue();
 
             // When no new SVG/image is available during auto-save or workspace edit
             await storage.saveLocally("new-blocks-no-art", undefined, "projA");
@@ -876,6 +876,19 @@ describe("ProjectStorage", () => {
 
             await storage.saveThumbnail(undefined, "projA");
             expect(storage.data.Projects["projA"].ProjectImage).toBe("thumbnail-A");
+
+            // Empty string or whitespace preserves existing thumbnail without saving
+            await storage.saveLocally("new-blocks-empty-thumb", "", "projA");
+            expect(storage.data.Projects["projA"].ProjectImage).toBe("thumbnail-A");
+
+            saveSpy.mockClear();
+            await storage.saveThumbnail("", "projA");
+            expect(storage.data.Projects["projA"].ProjectImage).toBe("thumbnail-A");
+            expect(saveSpy).not.toHaveBeenCalled();
+
+            await storage.saveThumbnail("   ", "projA");
+            expect(storage.data.Projects["projA"].ProjectImage).toBe("thumbnail-A");
+            expect(saveSpy).not.toHaveBeenCalled();
         });
 
         // Test 3 — Valid thumbnail replacement

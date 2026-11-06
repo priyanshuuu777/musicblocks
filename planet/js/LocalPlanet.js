@@ -40,7 +40,8 @@ class LocalPlanet {
     }
 
     setCurrentProjectImage(image) {
-        this.currentProjectImage = image || null;
+        this.currentProjectImage =
+            typeof image === "string" && image.trim().length > 0 ? image : null;
         this.currentProjectID = this.Planet.ProjectStorage.getCurrentProjectID();
     }
 
@@ -78,11 +79,18 @@ class LocalPlanet {
         }
 
         if (index !== -1 && this.currentProjectImage) {
-            const id = `local-project-image-${this.projects[index][0]}`;
+            const projectId = this.projects[index][0];
+            const existingPersisted = this.ProjectTable?.[projectId]?.ProjectImage;
+            const hasPersistedImage =
+                typeof existingPersisted === "string" && existingPersisted.trim().length > 0;
 
-            const cardimg = document.getElementById(id);
-            if (cardimg) {
-                cardimg.src = this.currentProjectImage;
+            if (!hasPersistedImage) {
+                const id = `local-project-image-${projectId}`;
+
+                const cardimg = document.getElementById(id);
+                if (cardimg) {
+                    cardimg.src = this.currentProjectImage;
+                }
             }
         }
 
@@ -112,6 +120,7 @@ class LocalPlanet {
     }
 
     openProject(id) {
+        this.currentProjectImage = null;
         const Planet = this.Planet;
         Planet.ProjectStorage.setCurrentProjectID(id);
         // Notify the parent window of the new project's git state so that

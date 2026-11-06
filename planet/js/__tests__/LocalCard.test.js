@@ -324,6 +324,22 @@ describe("LocalCard", () => {
                 null
             );
         });
+
+        it("should fall back to ImageDataURL when ProjectImage is empty string or whitespace", () => {
+            const data = makeProjectData({ ProjectImage: "   ", PublishedData: null });
+            planet.LocalPlanet.ProjectTable["dl3"] = data;
+
+            const card = new LocalCard(planet);
+            card.init("dl3");
+            card.download();
+
+            expect(planet.SaveInterface.saveHTML).toHaveBeenCalledWith(
+                "My Project",
+                "<xml/>",
+                "images/default.png",
+                null
+            );
+        });
     });
 
     // ─── duplicate() ────────────────────────────────────────────────────────────
