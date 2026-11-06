@@ -1314,10 +1314,10 @@ describe("setupRhythmActions", () => {
             targetTurtle.singer.swing = [];
             targetTurtle.singer.swingTarget = [];
 
-            Singer.RhythmActions.addSwing(val, 4, 0, 1);
+            expect(Singer.RhythmActions.addSwing(val, 4, 0, 1)).toBe(false);
             expect(targetTurtle.singer.swing.length).toBe(0);
 
-            Singer.RhythmActions.addSwing(2, val, 0, 1);
+            expect(Singer.RhythmActions.addSwing(2, val, 0, 1)).toBe(false);
             expect(targetTurtle.singer.swing.length).toBe(0);
         });
     });
@@ -1623,7 +1623,7 @@ describe("setupRhythmActions", () => {
         });
 
         it("sets dispatch block when blk is in blockList", () => {
-            Singer.RhythmActions.doTie(0, 1);
+            expect(Singer.RhythmActions.doTie(0, 1)).toBe(true);
 
             expect(activity.logo.setDispatchBlock).toHaveBeenCalledWith(1, 0, "_tie_0");
             expect(activity.logo.setTurtleListener).toHaveBeenCalledWith(
@@ -1999,8 +1999,8 @@ describe("setupRhythmActions", () => {
             targetTurtle.singer.tieNoteExtras = [5, ["sine"], 1, [1], [], undefined, false, 4];
             targetTurtle.singer.tieFirstDrums = ["snare"];
 
-            // Re-entrant inner Tie enters (block 20)
-            Singer.RhythmActions.doTie(0, 20);
+            // Re-entrant inner Tie enters (block 20) and sets up no listener of its own
+            expect(Singer.RhythmActions.doTie(0, 20)).toBe(false);
 
             // Outer state must NOT be reset by inner doTie entry
             expect(targetTurtle.singer.tie).toBe(true);
