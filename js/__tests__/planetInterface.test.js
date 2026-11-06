@@ -407,6 +407,91 @@ describe("PlanetInterface", () => {
         expect(saveLocally).toHaveBeenCalledWith(D, null, "proj1");
     });
 
+    test("Test 2 — Missing SVG: saveLocally with svgData='' preserves existing thumbnail in projectStorage", async () => {
+        doSVG.mockReturnValue("");
+        const D = { blocks: ["edited-notes"] };
+        mockActivity.prepareExport.mockReturnValue(D);
+        const saveLocally = jest.fn().mockResolvedValue();
+        planetInterface.planet = {
+            ProjectStorage: {
+                saveLocally,
+                getCurrentProjectID: () => "projB",
+                data: {
+                    Projects: {
+                        projB: {
+                            ProjectName: "heylooo",
+                            ProjectData: { blocks: ["old-notes"] },
+                            ProjectImage: "existing-turtle-thumbnail"
+                        }
+                    }
+                }
+            }
+        };
+        planetInterface.iframe = { style: { display: "none" } };
+
+        await planetInterface.saveLocally();
+        expect(saveLocally).toHaveBeenCalledWith(D, "existing-turtle-thumbnail", "projB");
+    });
+
+    test("Test 12 — Pencil/edit UI regression: editing project B without turtle graphics preserves both thumbnails on return to Planet", async () => {
+        const storageData = {
+            CurrentProject: "projA",
+            Projects: {
+                projA: {
+                    ProjectName: "My Project",
+                    ProjectData: { blocks: ["project-A-blocks"] },
+                    ProjectImage: "thumbnail-A"
+                },
+                projB: {
+                    ProjectName: "heylooo",
+                    ProjectData: { blocks: ["project-B-blocks"] },
+                    ProjectImage: "thumbnail-B"
+                }
+            }
+        };
+
+        const mockPlanet = {
+            ProjectStorage: {
+                data: storageData,
+                getCurrentProjectID: () => storageData.CurrentProject,
+                getCurrentProjectImage: () =>
+                    storageData.Projects[storageData.CurrentProject]?.ProjectImage || null,
+                saveLocally: jest.fn(async (data, image, id) => {
+                    const target = id ?? storageData.CurrentProject;
+                    if (!storageData.Projects[target]) return;
+                    if (data !== undefined) storageData.Projects[target].ProjectData = data;
+                    if (image !== undefined) storageData.Projects[target].ProjectImage = image;
+                })
+            },
+            open: jest.fn()
+        };
+
+        planetInterface.planet = mockPlanet;
+        planetInterface.iframe = { style: { display: "none", zIndex: "0" } };
+
+        // 1. User opens Project B (heylooo) through edit/pencil action
+        storageData.CurrentProject = "projB";
+
+        // 2. User rearranges blocks (no turtle graphics, svgData is empty)
+        doSVG.mockReturnValue("");
+        const updatedBlocksB = { blocks: ["project-B-modified-blocks"] };
+        mockActivity.prepareExport.mockReturnValue(updatedBlocksB);
+
+        // 3. User saves and re-opens Planet (showPlanet)
+        await planetInterface.saveLocally();
+        planetInterface.showPlanet();
+
+        // 4. Invariant: planet.open must be called with null, NEVER a transparent overlay
+        expect(mockPlanet.open).toHaveBeenCalledWith(null);
+
+        // 5. Invariant: Project B's thumbnail remains thumbnail-B and data is updated
+        expect(storageData.Projects["projB"].ProjectData).toEqual(updatedBlocksB);
+        expect(storageData.Projects["projB"].ProjectImage).toBe("thumbnail-B");
+
+        // 6. Invariant: Project A's thumbnail remains thumbnail-A and is not swapped
+        expect(storageData.Projects["projA"].ProjectImage).toBe("thumbnail-A");
+    });
+
     test("saveLocally: pending thumbnail callback executing after Planet opens, active project is deleted, and Planet closes does not overwrite replacement project or recreate deleted project", async () => {
         doSVG.mockReturnValue("<svg/>");
         mockActivity.prepareExport.mockReturnValue({ blocks: ["stale-snapshot"] });

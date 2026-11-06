@@ -173,6 +173,20 @@ describe("LocalPlanet", () => {
             expect(global.jQuery).toHaveBeenCalledWith(".tooltipped");
             expect(jQueryMock.tooltip).toHaveBeenCalledWith({ delay: 50 });
         });
+
+        it("should not overwrite card image if currentProjectImage is null or empty", () => {
+            localPlanet.ProjectTable = mockPlanet.ProjectStorage.data.Projects;
+            localPlanet.refreshProjectArray();
+            localPlanet.initCards();
+
+            const currentImg = document.getElementById("local-project-image-testProj1");
+            currentImg.src = "original-card-image.png";
+
+            localPlanet.setCurrentProjectImage(null);
+            localPlanet.renderAllProjects();
+
+            expect(currentImg.src).toContain("original-card-image.png");
+        });
     });
 
     describe("updateProjects", () => {

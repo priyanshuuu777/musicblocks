@@ -69,7 +69,14 @@ class Planet {
     }
 
     saveThumbnail(image, projectId) {
-        return this.ProjectStorage.saveThumbnail(image, projectId);
+        const res = this.ProjectStorage.saveThumbnail(image, projectId);
+        if (this.LocalPlanet && typeof document !== "undefined") {
+            const cardimg = document.getElementById(`local-project-image-${projectId}`);
+            if (cardimg && image) {
+                cardimg.src = image;
+            }
+        }
+        return res;
     }
 
     setAnalyzeProject(func) {

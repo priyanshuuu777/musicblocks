@@ -105,8 +105,7 @@ class PlanetInterface {
                 return;
             }
 
-            const png = docById("overlayCanvas").toDataURL("image/png");
-            this.planet.open(png); // this.mainCanvas.toDataURL("image/png"));
+            this.planet.open(null);
             this.iframe.style.display = "block";
             this.iframe.style.zIndex = "9999";
             try {
@@ -385,13 +384,22 @@ class PlanetInterface {
                     }
                     return projectStorage.saveLocally(data, image);
                 };
+                const existingImage =
+                    projectId !== undefined &&
+                    projectStorage.data?.Projects?.[projectId]?.ProjectImage !== undefined
+                        ? projectStorage.data.Projects[projectId].ProjectImage
+                        : null;
                 if (svgData === null || svgData === undefined || svgData === "") {
-                    return Promise.resolve(saveProject(null)).catch(handleProjectSaveError);
+                    return Promise.resolve(saveProject(existingImage)).catch(
+                        handleProjectSaveError
+                    );
                 } else {
                     const fallbackImage =
-                        typeof projectStorage.getCurrentProjectImage === "function"
-                            ? projectStorage.getCurrentProjectImage()
-                            : null;
+                        existingImage !== null
+                            ? existingImage
+                            : typeof projectStorage.getCurrentProjectImage === "function"
+                              ? projectStorage.getCurrentProjectImage()
+                              : null;
                     const savePromise = Promise.resolve(saveProject(fallbackImage)).catch(
                         handleProjectSaveError
                     );

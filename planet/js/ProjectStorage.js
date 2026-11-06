@@ -68,7 +68,9 @@ class ProjectStorage {
                 this.data.Projects[projectId].ProjectData = data;
                 this.data.Projects[projectId].DateLastModified = Date.now();
             }
-            this.data.Projects[projectId].ProjectImage = image;
+            if (image !== undefined) {
+                this.data.Projects[projectId].ProjectImage = image;
+            }
             await this.save();
             return;
         }
@@ -94,7 +96,9 @@ class ProjectStorage {
             this.data.Projects[c].ProjectData = data;
             this.data.Projects[c].DateLastModified = Date.now();
         }
-        this.data.Projects[c].ProjectImage = image;
+        if (image !== undefined) {
+            this.data.Projects[c].ProjectImage = image;
+        }
         await this.save();
     }
 
@@ -105,8 +109,10 @@ class ProjectStorage {
             return;
         }
 
-        this.data.Projects[projectId].ProjectImage = image;
-        await this.save();
+        if (image !== undefined) {
+            this.data.Projects[projectId].ProjectImage = image;
+            await this.save();
+        }
     }
 
     async getCurrentProjectData() {

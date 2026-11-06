@@ -40,7 +40,7 @@ class LocalPlanet {
     }
 
     setCurrentProjectImage(image) {
-        this.currentProjectImage = image;
+        this.currentProjectImage = image || null;
         this.currentProjectID = this.Planet.ProjectStorage.getCurrentProjectID();
     }
 
@@ -77,11 +77,13 @@ class LocalPlanet {
             if (this.projects[i][0] === this.currentProjectID) index = i;
         }
 
-        if (index !== -1) {
+        if (index !== -1 && this.currentProjectImage) {
             const id = `local-project-image-${this.projects[index][0]}`;
 
             const cardimg = document.getElementById(id);
-            cardimg.src = this.currentProjectImage;
+            if (cardimg) {
+                cardimg.src = this.currentProjectImage;
+            }
         }
 
         jQuery(".tooltipped").tooltip({ delay: 50 });

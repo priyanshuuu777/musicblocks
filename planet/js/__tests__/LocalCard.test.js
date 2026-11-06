@@ -180,6 +180,18 @@ describe("LocalCard", () => {
             expect(img.src).toBe("data:image/png;base64,abc");
         });
 
+        it("should use placeholder when ProjectImage is undefined or empty string", () => {
+            const cardUndefined = prepareCard("p-undef", { ProjectImage: undefined });
+            cardUndefined.render();
+            const imgUndef = document.getElementById("local-project-image-p-undef");
+            expect(imgUndef.src).toContain("mbgraphic.png");
+
+            const cardEmpty = prepareCard("p-empty", { ProjectImage: "" });
+            cardEmpty.render();
+            const imgEmpty = document.getElementById("local-project-image-p-empty");
+            expect(imgEmpty.src).toContain("mbgraphic.png");
+        });
+
         it("should set input value to the project name", () => {
             const card = prepareCard("p5", { ProjectName: "Cool Song" });
             card.render();

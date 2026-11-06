@@ -93,7 +93,13 @@ class LocalCard {
         const Planet = this.Planet;
 
         let image = Planet.ProjectStorage.ImageDataURL;
-        if (this.ProjectData.ProjectImage !== null) image = this.ProjectData.ProjectImage;
+        if (
+            this.ProjectData.ProjectImage !== null &&
+            this.ProjectData.ProjectImage !== undefined &&
+            this.ProjectData.ProjectImage !== ""
+        ) {
+            image = this.ProjectData.ProjectImage;
+        }
 
         let description = null;
         if (this.ProjectData.PublishedData !== null)
@@ -130,8 +136,13 @@ class LocalCard {
         // set image
         let imageSrc;
 
-        if (this.ProjectData.ProjectImage !== null) imageSrc = this.ProjectData.ProjectImage;
-        else {
+        if (
+            this.ProjectData.ProjectImage !== null &&
+            this.ProjectData.ProjectImage !== undefined &&
+            this.ProjectData.ProjectImage !== ""
+        ) {
+            imageSrc = this.ProjectData.ProjectImage;
+        } else {
             imageSrc = Planet.IsMusicBlocks ? this.PlaceholderMBImage : this.PlaceholderTBImage;
         }
 
