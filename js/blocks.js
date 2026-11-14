@@ -5610,6 +5610,9 @@ class Blocks {
         this.loadNewBlocks = blockObjs => {
             // Anything else has no blocks to finish on, so the load would never end.
             if (!Array.isArray(blockObjs)) {
+                if (this.activity && typeof this.activity.errorMsg === "function") {
+                    this.activity.errorMsg(_("Cannot load project: invalid project structure."));
+                }
                 throw new TypeError("loadNewBlocks expects a list of blocks.");
             }
 

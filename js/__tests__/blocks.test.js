@@ -3457,7 +3457,7 @@ describe("Blocks Foundation", () => {
             const activity = makeActivity();
             const blocks = makeBlocks(activity, ["forward"]);
 
-            expect(() => blocks.loadNewBlocks({ invalid: "data" })).not.toThrow();
+            expect(() => blocks.loadNewBlocks({ invalid: "data" })).toThrow(TypeError);
             expect(blocks._loadInProgress).toBe(false);
             expect(activity.errorMsg).toHaveBeenCalledWith(
                 "Cannot load project: invalid project structure."
